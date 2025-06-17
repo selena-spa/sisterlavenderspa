@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Service Agreement Form</title>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    #signature-pad {
+      border: 1px solid #ccc;
+      width: 400px;
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Service Agreement</h2>
+<form id="agreement-form">
+  <label>Name: <input type="text" id="name" required></label><br><br>
+  <label>Email: <input type="email" id="email" required></label><br><br>
+  <label>Phone: <input type="tel" id="phone"></label><br><br>
+
+  <p>Please sign below:</p>
+  <canvas id="signature-pad"></canvas><br>
+  <button type="button" id="clear-sign">Clear Signature</button><br><br>
+
+  <button type="submit">Submit Agreement</button>
+</form>
+
+<p id="status"></p>
+
+<script>
+  const canvas = document.getElementById('signature-pad');
+  const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' });
+
+  document.getElementById('clear-sign').addEventListener('click', () => {
+    signaturePad.clear();
+  });
+
+  document.getElementById('agreement-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (signaturePad.isEmpty()) {
+      alert('Please provide a signature.');
+      return;
+    }
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    // Generate PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text('Service Agreement', 20, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Name: ${name}`, 20, 40);
+    doc.text(`Email: ${email}`, 20, 50);
+    doc.text(`Phone: ${phone}`, 20, 60);
+
+    doc.text('Customer Signature:', 20, 80);
+
+    // Add signature image to PDF
+    const signatureDataUrl = signaturePad.toDataURL('image/png');
+    doc.addImage(signatureDataUrl, 'PNG', 20, 85, 160, 50);
+
+    // Save PDF to base64 string
+    const pdfBase64 = doc.output('datauristring').split(',')[1]; // Remove prefix
+
+    // Send PDF to Google Apps Script Web App
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzYHsgDqfIzA2JqMveX5HKBph4ox1QPC7BveP9m8PS8aUZCN_NATqJ_5yRwDHr1QrEx/exec';
+
+    document.getElementById('status').textContent = 'Sending agreement...';
+
+    try {
+      const response = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ pdfBase64 }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const result = await response.json();
+
+      if (result.status === 'success') {
+        document.getElementById('status').textContent = 'Agreement submitted successfully!';
+        // Optionally clear form & signature
+        signaturePad.clear();
+        e.target.reset();
+      } else {
+        document.getElementById('status').textContent = 'Error: ' + result.message;
+      }
+    } catch (err) {
+      document.getElementById('status').textContent = 'Fetch error: ' + err.message;
+    }
+  });
+</script>
+
+</body>
+</html>
