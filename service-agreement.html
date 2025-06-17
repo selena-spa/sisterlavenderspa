@@ -62,17 +62,17 @@ By signing this agreement, you acknowledge and agree to the following terms:
 <form id="agreement-form">
   <div class="field-group">
     <label for="name">Full Name:</label>
-    <input type="text" id="name" />
+    <input type="text" id="name" required />
   </div>
 
   <div class="field-group">
     <label for="email">Email Address:</label>
-    <input type="email" id="email" />
+    <input type="email" id="email" required />
   </div>
 
   <div class="field-group">
     <label for="phone">Phone Number:</label>
-    <input type="tel" id="phone" />
+    <input type="tel" id="phone" required />
   </div>
 
   <div class="field-group">
@@ -141,7 +141,7 @@ By signing this agreement, you acknowledge and agree to the following terms:
 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzlphbtgUSPumv4UTYhMKY1t4zaoffJqkms7zT-z3htmWh0Zl53soNJfE6kt_D63sU8/exec'; // Replace this with your actual web app URL
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzlphbtgUSPumv4UTYhMKY1t4zaoffJqkms7zT-z3htmWh0Zl53soNJfE6kt_D63sU8/exec'; // Replace with your deployed script URL
 
     document.getElementById("status").textContent = "Submitting...";
 
@@ -151,7 +151,7 @@ By signing this agreement, you acknowledge and agree to the following terms:
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ pdfBase64 })
+        body: JSON.stringify({ data: { pdfBase64, name, email, phone } })
       });
 
       const result = await response.json();
