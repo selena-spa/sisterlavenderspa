@@ -1,28 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Service Agreement Form</title>
+  <meta charset="UTF-8" />
+  <title>Service Agreement - Sister Lavender Spa</title>
   <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    #signature-pad {
+    body {
+      font-family: sans-serif;
+      margin: 40px auto;
+      max-width: 700px;
+      line-height: 1.6;
+    }
+    h2 {
+      text-align: center;
+    }
+    canvas {
       border: 1px solid #ccc;
-      width: 400px;
+      width: 100%;
       height: 200px;
+    }
+    .field-group {
+      margin: 20px 0;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-<h2>Service Agreement</h2>
-<form id="agreement-form">
-  <label>Name: <input type="text" id="name" required></label><br><br>
-  <label>Email: <input type="email" id="email" required></label><br><br>
-  <label>Phone: <input type="tel" id="phone"></label><br><br>
+<h2>Sister Lavender Spa - Service Agreement</h2>
 
-  <p>Please sign below:</p>
-  <canvas id="signature-pad"></canvas><br>
-  <button type="button" id="clear-sign">Clear Signature</button><br><br>
+<p>
+By signing this agreement, you acknowledge and agree to the following terms:
+</p>
+<ul>
+  <li>All services provided by Sister Lavender Spa are for relaxation and wellness only.</li>
+  <li>You affirm that you have disclosed any medical conditions or allergies that may affect the treatment.</li>
+  <li>Appointments must be canceled or rescheduled at least 24 hours in advance to avoid charges.</li>
+  <li>Sister Lavender Spa is not responsible for adverse reactions resulting from undisclosed conditions or improper aftercare.</li>
+  <li>You agree to follow all spa policies, including hygiene and punctuality guidelines.</li>
+  <li>Your personal information is kept confidential and will not be shared.</li>
+</ul>
+
+<form id="agreement-form">
+  <div class="field-group">
+    <label for="name">Full Name:</label>
+    <input type="text" id="name" required />
+  </div>
+
+  <div class="field-group">
+    <label for="email">Email Address:</label>
+    <input type="email" id="email" required />
+  </div>
+
+  <div class="field-group">
+    <label for="phone">Phone Number:</label>
+    <input type="tel" id="phone" />
+  </div>
+
+  <div class="field-group">
+    <label for="signature-pad">Signature:</label>
+    <canvas id="signature-pad"></canvas>
+    <button type="button" id="clear-sign">Clear Signature</button>
+  </div>
 
   <button type="submit">Submit Agreement</button>
 </form>
@@ -31,7 +88,9 @@
 
 <script>
   const canvas = document.getElementById('signature-pad');
-  const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)' });
+  const signaturePad = new SignaturePad(canvas, {
+    backgroundColor: 'rgb(255,255,255)'
+  });
 
   document.getElementById('clear-sign').addEventListener('click', () => {
     signaturePad.clear();
@@ -39,60 +98,73 @@
 
   document.getElementById('agreement-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+
     if (signaturePad.isEmpty()) {
-      alert('Please provide a signature.');
+      alert("Please provide your signature before submitting.");
       return;
     }
 
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
 
-    // Generate PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
     doc.setFontSize(16);
-    doc.text('Service Agreement', 20, 20);
+    doc.text("Sister Lavender Spa - Service Agreement", 20, 20);
 
     doc.setFontSize(12);
     doc.text(`Name: ${name}`, 20, 40);
     doc.text(`Email: ${email}`, 20, 50);
     doc.text(`Phone: ${phone}`, 20, 60);
 
-    doc.text('Customer Signature:', 20, 80);
+    doc.text("Agreement Terms:", 20, 80);
+    const terms = [
+      "• All services provided by Sister Lavender Spa are for relaxation and wellness only.",
+      "• You affirm that you have disclosed any medical conditions or allergies that may affect the treatment.",
+      "• Appointments must be canceled or rescheduled at least 24 hours in advance to avoid charges.",
+      "• Sister Lavender Spa is not responsible for adverse reactions resulting from undisclosed conditions or improper aftercare.",
+      "• You agree to follow all spa policies, including hygiene and punctuality guidelines.",
+      "• Your personal information is kept confidential and will not be shared."
+    ];
 
-    // Add signature image to PDF
-    const signatureDataUrl = signaturePad.toDataURL('image/png');
-    doc.addImage(signatureDataUrl, 'PNG', 20, 85, 160, 50);
+    let y = 90;
+    terms.forEach(term => {
+      doc.text(term, 20, y);
+      y += 10;
+    });
 
-    // Save PDF to base64 string
-    const pdfBase64 = doc.output('datauristring').split(',')[1]; // Remove prefix
+    doc.text("Signature:", 20, y + 10);
+    const signatureImage = signaturePad.toDataURL("image/png");
+    doc.addImage(signatureImage, "PNG", 20, y + 15, 160, 50);
 
-    // Send PDF to Google Apps Script Web App
-    const scriptURL = 'https://script.google.com/a/macros/sisterlavenderspa.com/s/AKfycbwBCskHCiEE8XHYxukh6bMxNDJTiwWIaTRD8V_LPSpIsAh3ers5NnCCEWTE8cnK-qMm/exec';
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
 
-    document.getElementById('status').textContent = 'Sending agreement...';
+    const scriptURL = 'https://script.google.com/a/macros/sisterlavenderspa.com/s/AKfycbwBCskHCiEE8XHYxukh6bMxNDJTiwWIaTRD8V_LPSpIsAh3ers5NnCCEWTE8cnK-qMm/exec'; // Replace this with your actual web app URL
+
+    document.getElementById("status").textContent = "Submitting...";
 
     try {
       const response = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ pdfBase64 }),
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ pdfBase64 })
       });
 
       const result = await response.json();
 
-      if (result.status === 'success') {
-        document.getElementById('status').textContent = 'Agreement submitted successfully!';
-        // Optionally clear form & signature
+      if (result.status === "success") {
+        document.getElementById("status").textContent = "Agreement submitted successfully!";
         signaturePad.clear();
         e.target.reset();
       } else {
-        document.getElementById('status').textContent = 'Error: ' + result.message;
+        document.getElementById("status").textContent = "Error: " + result.message;
       }
     } catch (err) {
-      document.getElementById('status').textContent = 'Fetch error: ' + err.message;
+      document.getElementById("status").textContent = "Fetch error: " + err.message;
     }
   });
 </script>
